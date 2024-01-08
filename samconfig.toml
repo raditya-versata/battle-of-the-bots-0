@@ -1,0 +1,11 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "RadityaPerdhevi-battlebot0"
+resolve_s3 = true
+s3_prefix = "RadityaPerdhevi-battlebot0"
+region = "us-east-1"
+profile = "saml"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "AgentName=\"RadityaP\" TicketToken=\"botdev.k2Y6WNsmv9JCkXCg1XcT\""
+image_repositories = []

@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: A Lambda function that returns an AI Response to a ticket.
+
+Parameters:
+  AgentName:
+    Type: String
+    Description: Name of the Agent
+
+  TicketToken:
+    Type: String
+    Description: Token for the Ticket
+
+Resources:
+  AiResponseLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AgentName}-AiResponseLambdaFunction'
+      CodeUri: lambda/python/
+      Handler: main.handler
+      Runtime: python3.9
+      Timeout: 30
+      Environment:
+        Variables:
+          TICKET_TOKEN: !Ref TicketToken
+      Events:
+        GetAIResponse:
+          Type: Api
+          Properties:
+            Path: /AiResponse
+            Method: get
+            RestApiId: !Ref AiResponseAPI
+
+  AiResponseAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub '${AgentName}-AiResponseAPI'
+      StageName: prod
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: !Sub 'API Gateway with Lambda Integration for ${AgentName}'
+        paths:
+          /AiResponse:
+            get:
+              produces:
+              - application/json
+              parameters:
+              - name: ticketId
+                in: query
+                required: true
+                type: string
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AiResponseLambdaFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: aws_proxy
+
+Outputs:
+  ApiUrl:
+    Description: Battle of Bots API endpoint URL for Prod stage
+    Value: !Sub 'https://${AiResponseAPI}.execute-api.${AWS::Region}.amazonaws.com/prod/AiResponse'
